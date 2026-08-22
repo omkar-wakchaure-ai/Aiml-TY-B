@@ -1,11 +1,12 @@
 import os
 import sys
+import time
 from dotenv import load_dotenv
 
-# Load environment variables from a .env file if it exists
+# Load environment variables
 load_dotenv()
 
-# Ensure Python adds the backend directory to its search path
+# Ensure Python adds backend directory to search path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from crewai import Crew, Process, LLM
@@ -45,14 +46,33 @@ def run_tracker(topic, competitor):
         process=Process.sequential  # Runs Scout first, then Analyst
     )
 
-    # 4. Execute the Workflow
+    # 4. Execute with Automatic Retry Logic for 429 Quotas
     print(f"🚀 Launching Agent Fleet with Gemini for {competitor} in {topic}...")
-    result = ai_crew.kickoff()
     
-    return result
+    max_retries = 3
+    retry_delay = 15  # seconds to wait if rate-limited
+    
+    for attempt in range(max_retries):
+        try:
+            time.sleep(2)  # Buffer before kickoff
+            result = ai_crew.kickoff()
+            return result
+        except Exception as e:
+            error_str = str(e)
+            if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                if attempt < max_retries - 1:
+                    print(f"⚠️ Rate limit hit (429). Waiting {retry_delay} seconds before retry {attempt + 2}/{max_retries}...")
+                    time.sleep(retry_delay)
+                    continue
+                else:
+                    raise RuntimeError(
+                        "API Quota Limit Reached (429). The free tier is temporarily rate-limiting requests. "
+                        "Please wait 1 minute for your quota token bucket to refill, then click 'Launch Agent Fleet' again."
+                    )
+            else:
+                raise e
 
 if __name__ == "__main__":
-    # Test the pipeline directly in the terminal
     final_report = run_tracker(topic="Solid State Battery", competitor="Competitor X")
     print("\n\n====== FINAL INTELLIGENCE REPORT ======\n")
     print(final_report)

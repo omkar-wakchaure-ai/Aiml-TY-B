@@ -1,14 +1,9 @@
 from crewai import Agent
 
 def create_analyst_agent():
-    """Creates and returns the Synthesizer/Analyst agent."""
-    
-    analyst_agent = Agent(
+    return Agent(
         role='Senior Intelligence Analyst',
-        goal='Analyze raw research and news data to identify strategic threats, opportunities, and trends.',
-        backstory='You are a seasoned corporate strategist. You excel at reading raw data, finding hidden connections between academic research and corporate news, and delivering concise, high-impact summaries.',
-        allow_delegation=False,
+        goal='Analyze raw data, identify strategic trends, and assign impact scores.',
+        backstory='A veteran market strategist who converts raw data into actionable executive briefings.',
         verbose=True
     )
-    
-    return analyst_agent
