@@ -7,13 +7,14 @@ from tasks.gathering_tasks import create_gathering_task
 from tasks.analysis_tasks import create_analysis_task
 
 # ============================================================
-# GEMINI API CONFIGURATION
+# OPENROUTER API CONFIGURATION
 # ============================================================
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 
-if not GEMINI_KEY:
-    raise ValueError("GEMINI_API_KEY is missing! Check your .env file.")
+if not OPENROUTER_KEY:
+    raise ValueError("OPENROUTER_API_KEY is missing! Check your .env file.")
 
+# Resilient LLM Configuration
 gemini_llm = LLM(
     model="gemini/gemini-3.6-flash",
     api_key=GEMINI_KEY
@@ -23,11 +24,11 @@ def run_tracker(topic: str, competitor: str):
     # 1. Instantiate Agents with STRICT Loop Caps
     scout = create_scout_agent()
     scout.llm = gemini_llm
-    scout.max_iter = 1  # <-- FORCE 1 SINGLE ACTION
+    scout.max_iter = 8  # Protects against infinite tool loops
 
     analyst = create_analyst_agent()
     analyst.llm = gemini_llm
-    analyst.max_iter = 1  # <-- FORCE 1 SINGLE ACTION
+    analyst.max_iter = 8  # Protects against infinite tool loops
 
     # 2. Instantiate Tasks
     gather_task = create_gathering_task(scout, topic, competitor)
@@ -38,9 +39,15 @@ def run_tracker(topic: str, competitor: str):
         agents=[scout, analyst],
         tasks=[gather_task, analyze_task],
         process=Process.sequential,
-        memory=False,  
-        max_rpm=2   # Pace to 2 requests per minute
-        # Embedder completely removed to stop hidden API calls
+        memory=False,  # Keep false to protect your free tier quota limits
+        max_rpm=15,    # Resource-aware execution constraint
+        embedder={
+            "provider": "google-generativeai",
+            "config": {
+                "model_name": "gemini-embedding-001",
+                "api_key": GEMINI_KEY
+            }
+        }
     )
 
     print(f"\n🚀 Launching Ultra-Light Fleet: {competitor} | Topic: {topic}")
