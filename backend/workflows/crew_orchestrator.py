@@ -14,51 +14,39 @@ GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_KEY:
     raise ValueError("GEMINI_API_KEY is missing! Check your .env file.")
 
-# Resilient LLM Configuration
 gemini_llm = LLM(
     model="gemini/gemini-3.6-flash",
     api_key=GEMINI_KEY
 )
 
 def run_tracker(topic: str, competitor: str):
-    """
-    Executes the multi-agent competitor research workflow with resource-aware limits,
-    loop detection, and fallback retry mechanisms (Task 5).
-    """
-    # 1. Instantiate Agents with Loop Caps (Deadlock/Loop Detection)
+    # 1. Instantiate Agents with STRICT Loop Caps
     scout = create_scout_agent()
     scout.llm = gemini_llm
-    scout.max_iter = 8  # Protects against infinite tool loops
+    scout.max_iter = 1  # <-- FORCE 1 SINGLE ACTION
 
     analyst = create_analyst_agent()
     analyst.llm = gemini_llm
-    analyst.max_iter = 8  # Protects against infinite tool loops
+    analyst.max_iter = 1  # <-- FORCE 1 SINGLE ACTION
 
     # 2. Instantiate Tasks
     gather_task = create_gathering_task(scout, topic, competitor)
     analyze_task = create_analysis_task(analyst, gather_task, topic)
 
-    # 3. Form Crew (Orchestration, Shared State, and Memory Management)
+    # 3. Form Crew (ULTRA-LIGHT CONFIGURATION)
     ai_crew = Crew(
         agents=[scout, analyst],
         tasks=[gather_task, analyze_task],
         process=Process.sequential,
-        memory=False,  # Keep false to protect your free tier quota limits
-        max_rpm=15,    # Resource-aware execution constraint
-        embedder={
-            "provider": "google-generativeai",
-            "config": {
-                "model_name": "gemini-embedding-001",
-                "api_key": GEMINI_KEY
-            }
-        }
+        memory=False,  
+        max_rpm=2   # Pace to 2 requests per minute
+        # Embedder completely removed to stop hidden API calls
     )
 
-    print(f"\n🚀 Launching Agent Fleet: {competitor} | Topic: {topic}")
+    print(f"\n🚀 Launching Ultra-Light Fleet: {competitor} | Topic: {topic}")
 
-    # 4. Execution Loop with Autonomous Failure Recovery
     max_retries = 3
-    retry_delay = 65  # Sufficient delay for Google API 429 quota replenishment
+    retry_delay = 65  
 
     for attempt in range(max_retries):
         try:
