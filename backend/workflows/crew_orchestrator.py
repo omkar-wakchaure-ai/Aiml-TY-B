@@ -7,17 +7,17 @@ from tasks.gathering_tasks import create_gathering_task
 from tasks.analysis_tasks import create_analysis_task
 
 # ============================================================
-# GEMINI API CONFIGURATION
+# OPENROUTER API CONFIGURATION
 # ============================================================
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 
-if not GEMINI_KEY:
-    raise ValueError("GEMINI_API_KEY is missing! Check your .env file.")
+if not OPENROUTER_KEY:
+    raise ValueError("OPENROUTER_API_KEY is missing! Check your .env file.")
 
-# Resilient LLM Configuration
-gemini_llm = LLM(
-    model="gemini/gemini-3.6-flash",
-    api_key=GEMINI_KEY
+openrouter_llm = LLM(
+    model=os.getenv("OPENROUTER_MODEL", "openrouter/openai/gpt-4o-mini"),
+    api_key=OPENROUTER_KEY,
+    base_url="https://openrouter.ai/api/v1"
 )
 
 def run_tracker(topic: str, competitor: str):
@@ -27,11 +27,11 @@ def run_tracker(topic: str, competitor: str):
     """
     # 1. Instantiate Agents with Loop Caps (Deadlock/Loop Detection)
     scout = create_scout_agent()
-    scout.llm = gemini_llm
+    scout.llm = openrouter_llm
     scout.max_iter = 8  # Protects against infinite tool loops
 
     analyst = create_analyst_agent()
-    analyst.llm = gemini_llm
+    analyst.llm = openrouter_llm
     analyst.max_iter = 8  # Protects against infinite tool loops
 
     # 2. Instantiate Tasks
@@ -43,15 +43,8 @@ def run_tracker(topic: str, competitor: str):
         agents=[scout, analyst],
         tasks=[gather_task, analyze_task],
         process=Process.sequential,
-        memory=False,  # Keep false to protect your free tier quota limits
-        max_rpm=15,    # Resource-aware execution constraint
-        embedder={
-            "provider": "google-generativeai",
-            "config": {
-                "model_name": "gemini-embedding-001",
-                "api_key": GEMINI_KEY
-            }
-        }
+        memory=False,  # Keep false to avoid requiring a separate embedding provider.
+        max_rpm=15     # Resource-aware execution constraint
     )
 
     print(f"\n🚀 Launching Agent Fleet: {competitor} | Topic: {topic}")
