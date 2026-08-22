@@ -13,7 +13,8 @@ from tasks.analysis_tasks import create_analysis_task
 # ============================================================
 # LOAD ENVIRONMENT VARIABLES
 # ============================================================
-load_dotenv()
+# OVERRIDE=TRUE FORCES PYTHON TO USE YOUR NEW API KEY
+load_dotenv(override=True)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -58,8 +59,8 @@ def run_tracker(topic, competitor):
         agents=[scout, analyst],
         tasks=[gather_task, analyze_task],
         process=Process.sequential,
-        memory=True, 
-        max_rpm=10,  # Limits requests to prevent 429 quota errors
+        memory=False,  # <-- SET TO FALSE FOR DEMO MODE TO PREVENT 429 ERROR
+        max_rpm=5,     # Limits requests to prevent 429 quota errors
         embedder={
             "provider": "google-generativeai",
             "config": {
@@ -80,8 +81,8 @@ def run_tracker(topic, competitor):
     print("====================================================\n")
 
     # 6. RETRY CONFIGURATION
-    max_retries = 3
-    retry_delay = 20
+    max_retries = 10
+    retry_delay = 65
 
     # 7. RUN CREW
     for attempt in range(max_retries):
