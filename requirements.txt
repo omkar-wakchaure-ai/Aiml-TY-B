@@ -1,0 +1,31 @@
+# Multi-Agent Framework
+crewai>=0.28.0
+crewai-tools>=0.2.0
+
+# LLM & Chain Utilities
+langchain>=0.1.0
+langchain-community>=0.0.20
+langchain-core>=0.1.20
+
+# Vector Database & Embeddings
+chromadb>=0.4.22
+
+# Web Search & API Scraping Tools
+arxiv>=2.1.0
+duckduckgo-search>=5.0.0
+requests>=2.31.0
+
+# Backend Framework
+fastapi>=0.110.0
+uvicorn>=0.28.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
+
+# Background Task Scheduling
+apscheduler>=3.10.4
+
+# Frontend Dashboard
+streamlit>=1.32.0
+
+# Environment Management
+python-dotenv>=1.0.1
