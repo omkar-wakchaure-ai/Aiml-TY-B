@@ -1,6 +1,10 @@
 from crewai import Agent
-from tools.web_search import search_competitor_news
-from tools.arxiv_api import search_research_papers
+try:
+    from tools.web_search import search_competitor_news
+    from tools.arxiv_api import search_research_papers
+except ModuleNotFoundError:
+    from ..tools.web_search import search_competitor_news
+    from ..tools.arxiv_api import search_research_papers
 
 def create_scout_agent():
     return Agent(

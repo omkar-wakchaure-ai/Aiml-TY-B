@@ -4,7 +4,10 @@ import sys
 from dotenv import load_dotenv
 
 # Force load the environment variables (bypasses caching issues)
-load_dotenv(override=True)
+load_dotenv(
+    dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"),
+    override=True,
+)
 
 # Ensure Python can find your workflows and agents folders
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
