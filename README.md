@@ -22,3 +22,18 @@ Run the adversarial test with:
 ```text
 python -m unittest backend.workflows.test_crew_orchestrator -v
 ```
+
+## Task 7: Advanced Tracing & Observability
+
+The orchestrator includes a dependency-free local flight recorder. Each route,
+tool call, failed primary tool, fallback, verifier step, and analyst synthesis
+creates a structured span with timestamp, agent, operation, latency, estimated
+tokens, status, and diagnosis. The Tool Calling page displays and exports the
+trace as JSON; the Orchestration page displays the same trace beside a
+before/after optimization benchmark.
+
+The adversarial regression intentionally fails the web tool and verifies that
+the trace contains both the failed span and the fallback span. This provides a
+reproducible root-cause diagnosis without requiring LangSmith credentials.
+The benchmark values shown in the UI are reference targets; live trace latency
+and estimated token values are captured per run for comparison.

@@ -31,3 +31,17 @@ def get_historical_context(query: str) -> str:
         return "No past historical data found on this topic."
     
     return "\n---\n".join(documents)
+
+
+def get_memory_context_for_question(question: str, topic: str = "", competitor: str = "") -> str:
+    """Retrieve a broader context window for follow-up agent questions."""
+    queries = [value.strip() for value in (question, competitor, topic) if value and value.strip()]
+    documents = []
+    seen = set()
+    for query in queries:
+        results = vector_db.query_similar(query_text=query, n_results=5)
+        for document in results.get("documents", [[]])[0]:
+            if document not in seen:
+                documents.append(document)
+                seen.add(document)
+    return "\n---\n".join(documents) if documents else "No past historical data found on this topic."

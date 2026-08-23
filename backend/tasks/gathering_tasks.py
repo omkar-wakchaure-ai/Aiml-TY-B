@@ -9,8 +9,11 @@ def create_gathering_task(scout_agent, target_topic, competitor_name):
             f"regarding the competitor: '{competitor_name}'.\n"
             f"2. Use the 'Academic Research Tool' to find recent scientific papers "
             f"related to the technology: '{target_topic}'.\n"
-            f"Gather all this raw data into a structured list."
+            f"Gather all this raw data into a structured list. For every item include "
+            f"source, date when available, claim, evidence excerpt, and confidence. "
+            f"If '{competitor_name}' or '{target_topic}' is too vague, report the ambiguity "
+            f"and do not invent a target. Preserve tool errors for the recovery controller."
         ),
-        expected_output="A bulleted list containing raw news headlines, URLs, and scientific paper summaries.",
+        expected_output="A structured evidence list with source, date, claim, excerpt, confidence, and explicit tool or data gaps.",
         agent=scout_agent
     )
